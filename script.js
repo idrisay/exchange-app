@@ -8,15 +8,20 @@ const getCurrency = (from, to) => {
   fetch(`https://api.exchangerate.host/convert?from=${from}&to=${to}`)
     .then((res) => res.json())
     .then((response) => {
-      // console.log(response)
       rateResult = response;
-      rateElm.innerHTML = rateResult.result;
-      rateElm.style.color = "white";
-      rateElm.style.padding = "5px";
-      rateElm.style.borderRadius = "5px";
-      rateElm.style.backgroundColor = generateLightColorHex();
-      rateElm.classList.remove("hidden");
-      loadingElm.classList.add("hidden");
+      if (!response.result) {
+        showToastify("We could not find these currencies!");
+      } else {
+        fromCurrency = from;
+        toCurrency = to;
+        rateElm.innerHTML = rateResult.result;
+        rateElm.style.color = "white";
+        rateElm.style.padding = "5px";
+        rateElm.style.borderRadius = "5px";
+        rateElm.style.backgroundColor = generateLightColorHex();
+        rateElm.classList.remove("hidden");
+        loadingElm.classList.add("hidden");
+      }
     });
 };
 
@@ -24,7 +29,6 @@ getCurrency(fromCurrency, toCurrency);
 
 var intervalId = window.setInterval(function () {
   getCurrency(fromCurrency, toCurrency);
-  //   console.log("--> ", rateResult.result);
 }, 3000);
 
 function generateLightColorHex() {
@@ -38,16 +42,35 @@ function generateLightColorHex() {
 
 document.getElementById("currency-inputs").onsubmit = (event) => {
   event.preventDefault();
-  // console.log(event.target[0].value)
   if (event.target[0].value && event.target[1].value) {
-    fromCurrency = event.target[0].value.toUpperCase();
-    toCurrency = event.target[1].value.toUpperCase();
-    document.getElementById("from").innerText = fromCurrency;
-    document.getElementById("to").innerText = toCurrency;
-    getCurrency(fromCurrency, toCurrency);
+    let fromCur = event.target[0].value.toUpperCase();
+    let toCur = event.target[1].value.toUpperCase();
+    document.getElementById("from").innerText = fromCur;
+    document.getElementById("to").innerText = toCur;
+    getCurrency(fromCur, toCur);
     rateElm.classList.add("hidden");
     loadingElm.classList.remove("hidden");
-    event.target[0].value = ''
-    event.target[1].value = ''
+    event.target[0].value = "";
+    event.target[1].value = "";
   }
+};
+
+const showToastify = (message) => {
+  Toastify({
+    text: message,
+    duration: 3000,
+    destination: false,
+    newWindow: true,
+    close: true,
+    gravity: "top", // `top` or `bottom`
+    position: "right", // `left`, `center` or `right`
+    stopOnFocus: true, // Prevents dismissing of toast on hover
+    style: {
+      background: "linear-gradient(to right, #00b09b, #96c93d)",
+    },
+    onClick: function () {}, // Callback after click
+  }).showToast();
+  getCurrency(fromCurrency, toCurrency);
+  document.getElementById("from").innerText = fromCurrency;
+  document.getElementById("to").innerText = toCurrency;
 };
